@@ -78,6 +78,10 @@ final cartControllerProvider = NotifierProvider<CartController, CartState>(
 );
 
 class CartController extends Notifier<CartState> {
+  /// Bumped by every mutating method — lets the async [_restore] detect
+  /// that a mutation landed mid-restore and skip its stale snapshot.
+  int _mutationSeq = 0;
+
   @override
   CartState build() {
     // The cart badge must be alive wherever the user navigates.
@@ -87,11 +91,17 @@ class CartController extends Notifier<CartState> {
   }
 
   Future<void> _restore() async {
+    final seqAtStart = _mutationSeq;
     final repository = ref.read(cartRepositoryProvider);
     try {
       final items = await repository.loadCart();
+      // A mutation landing mid-restore wins: its own persist has already
+      // re-written storage, and applying this stale snapshot would
+      // silently revert the user's action.
+      if (seqAtStart != _mutationSeq) return;
       state = state.copyWith(items: items);
     } on CacheException catch (error) {
+      if (seqAtStart != _mutationSeq) return;
       state = state.copyWith(error: error);
     }
   }
@@ -178,6 +188,7 @@ class CartController extends Notifier<CartState> {
 
   /// Empties the cart.
   void clear() {
+    _mutationSeq++;
     unawaited(_persist([], const <String, String>{}));
     state = const CartState();
   }
@@ -202,6 +213,7 @@ class CartController extends Notifier<CartState> {
     List<CartItem> items, {
     Map<String, String> messages = const {},
   }) {
+    _mutationSeq++;
     state = state.copyWith(items: items, validationMessages: messages);
     unawaited(_persist(items, messages));
   }
