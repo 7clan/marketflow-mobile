@@ -962,7 +962,7 @@ their branch's lifecycle. Product detail passes the tapped `Product` as
 --target-platform android-arm,android-arm64,android-x64`) plus an AAB; CI
 runs format-check → analyze → all 215 tests on push/PR to main.
 
-**Simple→details:** Universal (not arm64-only, not split-per-abi) because
+**Deeper:** Universal (not arm64-only, not split-per-abi) because
 the main artifact must install on any device and be shareable as one file;
 ABIs verified post-build with `unzip -l … | grep lib/`. Signing is honestly
 documented: debug-signed here (no upload keystore in the environment),

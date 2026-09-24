@@ -119,7 +119,7 @@ To experience failure states, flip `BackendConditions` on the running server
 | [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md) | semantics, touch targets, text scaling — with the tests that verify them |
 | [docs/RELEASE.md](docs/RELEASE.md) | Android universal APK / AAB process, signing, iOS status |
 | [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md) | AI-assisted development disclosure |
-| [docs/INTERVIEW_GUIDE.md](docs/INTERVIEW_GUIDE.md) | 45 questions mapped to real code |
+| [docs/INTERVIEW_GUIDE.md](docs/INTERVIEW_GUIDE.md) | 57 questions mapped to real code |
 | [docs/CV_EVIDENCE.md](docs/CV_EVIDENCE.md) | verified claims + CV bullets |
 
 ## Project layout
