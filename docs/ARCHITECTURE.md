@@ -117,7 +117,7 @@ totals.
 
 ## The in-process HTTP backend
 
-`MockMarketplaceServer` (1,241 lines) is a real `dart:io` `HttpServer` bound
+`MockMarketplaceServer` (1,240 lines) is a real `dart:io` `HttpServer` bound
 to `127.0.0.1` on an **ephemeral port**. The app's Dio client talks to it
 over genuine HTTP, so **timeouts, interceptors, cancellation, status codes
 and JSON decode errors are exercised for real** — no fake transport.

@@ -105,7 +105,7 @@ Wireless Noise-Cancelling Earbuds* always cost **\$124.15**).
 
 To experience failure states, flip `BackendConditions` on the running server
 (forced 500s, malformed JSON, checkout conflicts, latency) — see
-[docs/API.md](docs/API.md#failure-injection).
+[docs/API.md](docs/API.md).
 
 ## Documentation
 
