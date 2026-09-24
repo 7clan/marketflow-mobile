@@ -147,3 +147,36 @@ interview claim must reflect that.
   alongside any share link ("install via 'unknown sources'").
 - Build outputs live under gitignored `build/`; preserve release artifacts
   outside the repo when needed.
+
+### Verified on 2026-09-24 (Linux sandbox, Flutter 3.47.5 / Dart 3.13.4, JDK 17.0.20.1, Android SDK 36 + NDK 28.2.13676358)
+
+Commands run (real outputs):
+
+    flutter build apk --release --target-platform android-arm,android-arm64,android-x64
+    ✓ Built build/app/outputs/flutter-apk/app-release.apk (57.1MB)
+
+    flutter build appbundle --release
+    ✓ Built build/app/outputs/bundle/release/app-release.aab (55.5MB)
+
+Universal APK ABI verification (`unzip -l app-release.apk`, native libraries present in every ABI):
+
+    lib/armeabi-v7a/  libapp.so (7,881,288)  libflutter.so (8,615,900)  libdartjni.so  libdatastore_shared_counter.so
+    lib/arm64-v8a/    libapp.so (7,144,328)  libflutter.so (11,747,864) libdartjni.so  libdatastore_shared_counter.so
+    lib/x86_64/       libapp.so (7,340,936)  libflutter.so (13,051,424) libdartjni.so  libdatastore_shared_counter.so
+
+AAB ABI verification (`unzip -l app-release.aab`): the bundle's `base/lib/` carries the same
+three ABIs (armeabi-v7a, arm64-v8a, x86_64), so Google Play can generate device-specific
+splits. No `--split-per-abi` was used and the APK was not restricted to arm64.
+
+Artifacts preserved at build time (not committed): `marketflow-universal-release.apk`
+(57,086,649 bytes) and `marketflow-release.aab` (55,456,136 bytes).
+
+Signing: release artifacts are signed with the debug key (no production keystore exists in
+this environment) — fine for portfolio verification, NOT Play-Store-production-signed.
+iOS: NOT VERIFIED — requires macOS/Xcode/signing environment.
+
+Gradle on constrained hosts: the repo pins `org.gradle.jvmargs=-Xmx1536m`, a single worker,
+no daemon and in-process Kotlin compilation in `android/gradle.properties`, and uses the
+Gradle `-bin` distribution — see the commits
+`build(android): right-size Gradle for memory-constrained build hosts` and
+`build(android): pin in-process Kotlin compilation and single worker for 4GB hosts`.
