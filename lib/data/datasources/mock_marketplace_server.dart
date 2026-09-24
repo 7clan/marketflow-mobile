@@ -103,6 +103,10 @@ class MockMarketplaceServer {
   HttpServer? _server;
   int _requestCounter = 0;
 
+  /// Total requests handled since the last reset — lets tests assert how
+  /// many network calls a controller actually made (debounce/cancellation).
+  int get handledRequestCount => _requestCounter;
+
   // -----------------------------------------------------------------------
   // Lifecycle
   // -----------------------------------------------------------------------
