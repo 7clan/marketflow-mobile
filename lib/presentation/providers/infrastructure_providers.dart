@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,7 +23,6 @@ import '../../domain/repositories/cart_repository.dart';
 import '../../domain/repositories/favorites_repository.dart';
 import '../../domain/repositories/order_repository.dart';
 import '../../domain/repositories/product_repository.dart';
-import 'auth_controller.dart';
 
 /// Overridden in `main()` after `SharedPreferences.getInstance()`.
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -62,10 +64,6 @@ final apiClientProvider = Provider<ApiClient>((ref) {
   final client = ApiClient(
     config: config,
     tokenProvider: () async => (await sessionLocal.read())?.token,
-    // A 401 anywhere (outside auth endpoints) clears the session through
-    // the auth controller — wired lazily to avoid a provider cycle.
-    onUnauthorized: () =>
-        ref.read(authControllerProvider.notifier).handleSessionExpired(),
   );
   ref.onDispose(client.close);
   return client;
@@ -90,10 +88,27 @@ final favoritesCacheProvider = Provider<FavoritesCache>((ref) {
 // ---------------------------------------------------------------------------
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final repository = AuthRepositoryImpl(
-    apiClient: ref.watch(apiClientProvider),
-    local: ref.watch(sessionLocalDataSourceProvider),
+  final api = ref.watch(apiClientProvider);
+  final local = ref.watch(sessionLocalDataSourceProvider);
+  final repository = AuthRepositoryImpl(apiClient: api, local: local);
+  // Session-expiry wiring: a 401 with an attached token anywhere outside the
+  // auth endpoints discards the session. The repository (the session owner)
+  // reacts through its own interceptor on the shared client — wiring this
+  // from [apiClientProvider] would create a provider initializer cycle, and
+  // reading the auth controller from there can deadlock session restore.
+  // App state updates flow through the repository's userChanges stream.
+  final sessionExpiry = InterceptorsWrapper(
+    onError: (error, handler) {
+      final status = error.response?.statusCode;
+      final hadToken = error.requestOptions.headers['Authorization'] != null;
+      if (status == 401 && hadToken) {
+        unawaited(repository.discardLocalSession());
+      }
+      handler.next(error);
+    },
   );
+  api.dio.interceptors.add(sessionExpiry);
+  ref.onDispose(() => api.dio.interceptors.remove(sessionExpiry));
   ref.onDispose(repository.dispose);
   return repository;
 });
