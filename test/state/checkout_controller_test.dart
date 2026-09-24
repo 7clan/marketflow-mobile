@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marketflow/core/errors/app_exception.dart';
 import 'package:marketflow/domain/entities/address.dart';
-import 'package:marketflow/domain/entities/order.dart';
 import 'package:marketflow/presentation/providers/auth_controller.dart';
 import 'package:marketflow/presentation/providers/cart_controller.dart';
 import 'package:marketflow/presentation/providers/checkout_controller.dart';

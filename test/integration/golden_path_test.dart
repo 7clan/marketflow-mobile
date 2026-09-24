@@ -122,7 +122,7 @@ void main() {
       // Keep the autoDispose provider alive while we read it.
       final categorySub = container.listen(
         categoriesProvider,
-        (_, __) {},
+        (_, _) {},
         fireImmediately: true,
       );
       final categories = await container.read(categoriesProvider.future);

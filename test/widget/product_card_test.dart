@@ -139,8 +139,8 @@ void main() {
       // The accessible tap target is the semantics geometry (the visual
       // IconButton renders 40dp; Material pads the interactive area to 48).
       final handle = tester.ensureSemantics();
-      final semantics =
-          tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!;
+      final owner = tester.binding.renderViews.first.owner;
+      final semantics = owner?.semanticsOwner?.rootSemanticsNode;
       SemanticsNode? favoriteNode;
       void walk(SemanticsNode node) {
         if (node.label.contains('to favorites')) favoriteNode = node;
@@ -150,7 +150,7 @@ void main() {
         });
       }
 
-      walk(semantics);
+      if (semantics != null) walk(semantics);
       handle.dispose();
 
       expect(
