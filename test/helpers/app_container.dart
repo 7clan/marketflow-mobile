@@ -35,7 +35,8 @@ class TestAppScope {
 
   /// Yields to the event loop long enough for `unawaited(...)` restore/sync
   /// work (latency is zero, so one frame of real time is plenty).
-  Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 60));
+  Future<void> settle() =>
+      Future<void>.delayed(const Duration(milliseconds: 60));
 }
 
 /// Creates a scope with a started server. Disposal is registered with
