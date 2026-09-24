@@ -71,6 +71,15 @@ class FavoritesController extends Notifier<FavoritesState> {
         state = state.copyWith(ids: const <String>{}, error: null);
       }
     });
+    // When this controller is first watched *after* authentication was
+    // already established (e.g. a session restored during splash), the
+    // listener above never fires — sync from the current auth state instead.
+    // Deferred to a microtask: setting state synchronously during build is
+    // not allowed.
+    final currentAuth = ref.read(authControllerProvider).value;
+    if (currentAuth is AuthAuthenticated) {
+      Future<void>.microtask(syncFromServer);
+    }
 
     return const FavoritesState();
   }
@@ -94,10 +103,14 @@ class FavoritesController extends Notifier<FavoritesState> {
     state = state.copyWith(isLoading: true);
     try {
       final products = await repository.listFavorites();
+      // A rebuild (e.g. auth transition) may have replaced this notifier
+      // while the request was in flight — drop the stale result.
+      if (!ref.mounted) return;
       final ids = {for (final product in products) product.id};
       state = state.copyWith(ids: ids, isLoading: false, error: null);
       unawaited(repository.saveFavoriteIds(ids));
     } on AppException catch (error) {
+      if (!ref.mounted) return;
       state = state.copyWith(isLoading: false, error: error);
     }
   }
@@ -110,8 +123,10 @@ class FavoritesController extends Notifier<FavoritesState> {
     final repository = ref.read(favoritesRepositoryProvider);
     try {
       await repository.addFavorite(productId);
+      if (!ref.mounted) return;
       unawaited(repository.saveFavoriteIds(state.ids));
     } on AppException catch (error) {
+      if (!ref.mounted) return;
       state = previous.copyWith(error: error);
     }
   }
@@ -127,8 +142,10 @@ class FavoritesController extends Notifier<FavoritesState> {
     final repository = ref.read(favoritesRepositoryProvider);
     try {
       await repository.removeFavorite(productId);
+      if (!ref.mounted) return;
       unawaited(repository.saveFavoriteIds(state.ids));
     } on AppException catch (error) {
+      if (!ref.mounted) return;
       state = previous.copyWith(error: error);
     }
   }
