@@ -22,6 +22,7 @@ class AppTextFormField extends StatefulWidget {
     this.validator,
     this.autofillHints,
     this.helper,
+    this.onChanged,
     this.textInputAction = TextInputAction.next,
     this.onFieldSubmitted,
     this.autofocus = false,
@@ -39,6 +40,9 @@ class AppTextFormField extends StatefulWidget {
 
   /// Supporting text under the field (e.g. demo credentials hint).
   final String? helper;
+
+  /// Notified on every keystroke (e.g. to clear a server-side field error).
+  final ValueChanged<String>? onChanged;
   final TextInputAction textInputAction;
   final ValueChanged<String>? onFieldSubmitted;
   final bool autofocus;
@@ -71,6 +75,7 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
       maxLines: widget.obscure ? 1 : widget.maxLines,
       autofillHints: widget.autofillHints,
       textInputAction: widget.textInputAction,
+      onChanged: widget.onChanged,
       onFieldSubmitted: widget.onFieldSubmitted,
       validator: (value) {
         final error = widget.validator?.call(value);
