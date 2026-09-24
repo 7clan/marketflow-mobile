@@ -110,15 +110,17 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       ),
       body: switch ((product, error)) {
         (null, null) => const _DetailSkeleton(),
-        (null, final AppException? failure) => ErrorView(
-          message:
-              failure?.message ?? 'Something went wrong. Please try again.',
+        (null, _) => ErrorView(
+          message: switch (error) {
+            AppException exception => exception.message,
+            _ => 'Something went wrong. Please try again.',
+          },
           title: 'We could not load this product',
           retryLabel: 'Retry',
           onRetry: () =>
               ref.invalidate(productDetailProvider(widget.productId)),
         ),
-        (final Product loaded!, _) => _DetailContent(
+        (final Product loaded, _) => _DetailContent(
           product: loaded,
           quantity: _quantity,
           galleryIndex: _galleryIndex,

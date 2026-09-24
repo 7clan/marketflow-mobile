@@ -23,12 +23,9 @@ final favoriteProductsProvider =
 
 class FavoriteProductsController extends Notifier<List<Product>> {
   final Map<String, Product> _snapshots = {};
-  bool _disposed = false;
 
   @override
   List<Product> build() {
-    ref.onDispose(() => _disposed = true);
-
     final ids = ref.watch(
       favoritesControllerProvider.select((state) => state.ids),
     );
@@ -68,7 +65,10 @@ class FavoriteProductsController extends Notifier<List<Product>> {
         }
       }),
     );
-    if (_disposed) return;
+    // The favorites list may have changed while the fetches were in flight
+    // (or the provider lost its listeners) — writing state through a
+    // disposed ref would throw, so guard with [Ref.mounted].
+    if (!ref.mounted) return;
     state = _materialize(ref.read(favoritesControllerProvider).ids);
   }
 

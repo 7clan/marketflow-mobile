@@ -262,9 +262,14 @@ class _FavoriteRow extends ConsumerWidget {
   }
 
   void _remove(BuildContext context, WidgetRef ref) {
+    // Capture the controller instance: the SnackBar's undo action may fire
+    // after this row is disposed, and the keep-alive controller (unlike the
+    // widget's ref) stays valid.
+    final controller = ref.read(favoritesControllerProvider.notifier);
+
     // Optimistic: the list updates immediately; the controller rolls back
     // if the server rejects.
-    ref.read(favoritesControllerProvider.notifier).removeFavorite(product.id);
+    controller.removeFavorite(product.id);
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -273,9 +278,7 @@ class _FavoriteRow extends ConsumerWidget {
           content: Text('${product.title} removed from favorites'),
           action: SnackBarAction(
             label: 'Undo',
-            onPressed: () => ref
-                .read(favoritesControllerProvider.notifier)
-                .addFavorite(product.id),
+            onPressed: () => controller.addFavorite(product.id),
           ),
         ),
       );

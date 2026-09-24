@@ -43,6 +43,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    // The flow restarts fresh whenever the user (re-)enters checkout — a
+    // completed or abandoned flow must never leak into the next one.
+    ref.read(checkoutControllerProvider.notifier).reset();
     final address = ref.read(checkoutControllerProvider).address;
     _fullName.text = address?.fullName ?? '';
     _street.text = address?.street ?? '';
@@ -627,7 +630,7 @@ class _SuccessView extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: () => context.go('/orders'),
+                onPressed: () => context.replace('/orders'),
                 icon: const Icon(Icons.receipt_long_rounded),
                 label: const Text('View orders'),
               ),
