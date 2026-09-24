@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
+
 import '../../core/errors/app_exception.dart';
 import '../../core/errors/error_mapper.dart';
 import '../../core/network/api_client.dart';
@@ -92,6 +94,16 @@ class AuthRepositoryImpl implements AuthRepository {
         await local.clear();
         _emitUser(null);
         return null;
+      } on DioException catch (error) {
+        // The API client propagates raw transport errors (including 401s),
+        // so a rejected token must be recognized here — otherwise an expired
+        // session would surface as an app error instead of a clean sign-out.
+        if (error.response?.statusCode == 401) {
+          await local.clear();
+          _emitUser(null);
+          return null;
+        }
+        rethrow;
       }
     });
   }
